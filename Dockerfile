@@ -2,18 +2,23 @@ FROM php:7.4-fpm-alpine
 ENV LD_LIBRARY_PATH /usr/lib/oracle/21/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/21/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
+ENV GLIBC_VERSION 2.35-r0
+ENV NLS_LANG AMERICAN_AMERICA.UTF8
 # Install PHP Extensions (igbinary & memcached + memcache)
-RUN apk add --no-cache --update libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo
 RUN set -xe \
-    && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/214000/instantclient-basic-linux.x64-21.4.0.0.0dbru.zip \
-    && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/214000/instantclient-sdk-linux.x64-21.4.0.0.0dbru.zip \
-    && export BASE_NAME=instantclient_21_4 \
+    && apk add --no-cache --update git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat \
+    && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-basic-linux.x64-21.6.0.0.0dbru.zip \
+    && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sdk-linux.x64-21.6.0.0.0dbru.zip \
+    && export URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip \
+    && export BASE_NAME=instantclient_21_6 \
     && cd /tmp/ \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS \
     && apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev \
     && apk add --no-cache --update --virtual .oci8-deps unzip \
     && apk add --no-cache --update --virtual .openldap-deps openldap-dev \
     && apk add --no-cache --update --virtual .gd-deps freetype-dev libpng-dev libjpeg-turbo-dev \
+    && apk add --no-cache --update --virtual .zip-deps libzip-dev \
+    && apk add --no-cache --update --virtual .curl-deps curl-dev \
     && curl $URL_BASE > base.zip \
     && curl $URL_SDK > sdk.zip \
     && mkdir -p /usr/lib/oracle/21/client64/bin \
@@ -26,6 +31,7 @@ RUN set -xe \
     && ln -sf /lib/ld-musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \ 
     && echo "instantclient,${ORACLE_HOME}" | pecl install oci8-2.2.0 \
     && pecl install memcache-4.0.5.2 \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
 # Install igbinary (memcached's deps) \
     && pecl install igbinary \
 # Install memcached \
@@ -43,8 +49,9 @@ RUN set -xe \
     && docker-php-ext-configure gd \
         --with-freetype \
         --with-jpeg \
-    && docker-php-ext-install pdo_mysql pdo_oci ldap gd \
-    && docker-php-ext-enable igbinary memcached memcache oci8 \
+    && pecl install apcu \
+    && docker-php-ext-install pdo_mysql pdo_oci ldap gd zip curl \
+    && docker-php-ext-enable igbinary memcached memcache oci8 apcu \
     && rm -rf ${ORACLE_HOME}/sdk /tmp/* \
-    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps
-USER 900
+    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps
+USER 1000
