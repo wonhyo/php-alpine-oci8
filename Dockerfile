@@ -5,7 +5,7 @@ ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 # Install PHP Extensions (igbinary & memcached + memcache)
 RUN set -xe \
-    && apk add --no-cache --update git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat icu-data-full imagemagick nodejs npm \
+    && apk add --no-cache --update git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat icu-data-full imagemagick  \
     && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-basic-linux.x64-21.6.0.0.0dbru.zip \
     && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sdk-linux.x64-21.6.0.0.0dbru.zip \
     && export URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip \
@@ -19,6 +19,9 @@ RUN set -xe \
     && apk add --no-cache --update --virtual .zip-deps libzip-dev \
     && apk add --no-cache --update --virtual .curl-deps curl-dev \
     && apk add --no-cache --update --virtual .imagemagick imagemagick-dev \
+    && echo "http://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+    && echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories \
+    && apk add --no-cache --update nodejs nodejs-current npm \
     && pecl install imagick-3.7.0 \
     && curl $URL_BASE > base.zip \
     && curl $URL_SDK > sdk.zip \
