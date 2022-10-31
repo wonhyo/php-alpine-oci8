@@ -19,6 +19,8 @@ RUN set -xe \
     && apk add --no-cache --update --virtual .gd-deps freetype-dev libpng-dev libjpeg-turbo-dev \
     && apk add --no-cache --update --virtual .zip-deps libzip-dev \
     && apk add --no-cache --update --virtual .curl-deps curl-dev \
+    && apk add --no-cache --update --virtual .imagemagick imagemagick-dev \
+    && apk add --no-cache --update --virtual .postgresql postgresql-dev \
     && curl $URL_BASE > base.zip \
     && curl $URL_SDK > sdk.zip \
     && mkdir -p /usr/lib/oracle/21/client64/bin \
@@ -31,6 +33,7 @@ RUN set -xe \
     && ln -sf /lib/ld-musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \ 
     && echo "instantclient,${ORACLE_HOME}" | pecl install oci8-2.2.0 \
     && pecl install memcache-4.0.5.2 \
+    && pecl install imagick-3.7.0 \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
 # Install igbinary (memcached's deps) \
     && pecl install igbinary \
@@ -50,8 +53,8 @@ RUN set -xe \
         --with-freetype \
         --with-jpeg \
     && pecl install apcu \
-    && docker-php-ext-install pdo_mysql pdo_oci ldap gd zip curl \
-    && docker-php-ext-enable igbinary memcached memcache oci8 apcu \
+    && docker-php-ext-install pgsql pdo_pgsql pdo_mysql pdo_oci ldap gd zip curl \
+    && docker-php-ext-enable igbinary memcached memcache oci8 apcu imagick \
     && rm -rf ${ORACLE_HOME}/sdk /tmp/* \
-    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps
+    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick .postgresql 
 USER 1000
