@@ -2,15 +2,16 @@ FROM php:7.4-fpm-alpine
 ENV LD_LIBRARY_PATH /usr/lib/oracle/21/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/21/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
-ENV GLIBC_VERSION 2.35-r0
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 # Install PHP Extensions (igbinary & memcached + memcache)
 RUN set -xe \
     && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
-    && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-basic-linux.x64-21.6.0.0.0dbru.zip \
-    && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sdk-linux.x64-21.6.0.0.0dbru.zip \
-    && export URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/216000/instantclient-sqlplus-linux.x64-21.6.0.0.0dbru.zip \
-    && export BASE_NAME=instantclient_21_6 \
+    && export MAJOR=21 \
+    && export MINOR=8 \
+    && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-basic-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
+    && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-sdk-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
+    && export URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-sqlplus-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
+    && export BASE_NAME=instantclient_${MAJOR}_${MINOR} \
     && cd /tmp/ \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS \
     && apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev \
@@ -24,10 +25,10 @@ RUN set -xe \
     && apk add --no-cache --update --virtual .sqlite sqlite-dev \
     && curl $URL_BASE > base.zip \
     && curl $URL_SDK > sdk.zip \
-    && mkdir -p /usr/lib/oracle/21/client64/bin \
-    && unzip -d /usr/lib/oracle/21/client64 /tmp/base.zip \
-    && mv /usr/lib/oracle/21/client64/${BASE_NAME} ${ORACLE_HOME} \
-    && mv /usr/lib/oracle/21/client64/lib/*i /usr/lib/oracle/21/client64/bin \
+    && mkdir -p /usr/lib/oracle/${MAJOR}/client64/bin \
+    && unzip -d /usr/lib/oracle/${MAJOR}/client64 /tmp/base.zip \
+    && mv /usr/lib/oracle/${MAJOR}/client64/${BASE_NAME} ${ORACLE_HOME} \
+    && mv /usr/lib/oracle/${MAJOR}/client64/lib/*i /usr/lib/oracle/${MAJOR}/client64/bin \
     && unzip -d /tmp /tmp/sdk.zip \
     && mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} \
     && ln -sf /lib/libc.musl-x86_64.so.1 /lib/libresolv.so.2 \
