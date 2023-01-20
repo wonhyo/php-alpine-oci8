@@ -61,5 +61,4 @@ RUN set -xe \
     && docker-php-ext-install pgsql pdo_sqlite pdo_pgsql pdo_mysql pdo_oci ldap gd zip curl \
     && docker-php-ext-enable igbinary memcached memcache oci8 apcu imagick \
     && rm -rf ${ORACLE_HOME}/sdk /tmp/* \
-    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick .postgresql 
-USER 1000
+    apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick .postgresql 
