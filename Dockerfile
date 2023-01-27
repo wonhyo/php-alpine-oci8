@@ -59,4 +59,3 @@ RUN set -xe \
     && docker-php-ext-enable igbinary memcached memcache oci8 apcu imagick \
     && rm -rf ${ORACLE_HOME}/sdk /tmp/* \
     && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick .postgresql 
-USER 1000
