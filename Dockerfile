@@ -3,7 +3,7 @@ ENV LD_LIBRARY_PATH /usr/lib/oracle/21/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/21/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
-# Install PHP Extensions (igbinary & memcached + memcache)
+# Install PHP Extensions (igbinary & memcached + memcache + oci8 + pdo_oci)
 RUN set -xe \
     && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
     && export MAJOR=21 \
@@ -16,6 +16,7 @@ RUN set -xe \
     && export MEMCACHE_VERSION=8.0 \
     && export IMAGICK_VERSION=3.7.0 \
     && cd /tmp/ \
+# install package need to build modules
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS \
     && apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev \
     && apk add --no-cache --update --virtual .oci8-deps unzip \
@@ -26,6 +27,7 @@ RUN set -xe \
     && apk add --no-cache --update --virtual .imagemagick imagemagick-dev \
     && apk add --no-cache --update --virtual .postgresql postgresql-dev \
     && apk add --no-cache --update --virtual .sqlite sqlite-dev \
+# install oracle client software
     && curl $URL_BASE > base.zip \
     && curl $URL_SDK > sdk.zip \
     && mkdir -p /usr/lib/oracle/${MAJOR}/client64/bin \
@@ -36,9 +38,13 @@ RUN set -xe \
     && mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} \
     && ln -sf /lib/libc.musl-x86_64.so.1 /lib/libresolv.so.2 \
     && ln -sf /lib/ld-musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \ 
+# install oci8
     && echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION \
+# install memcache
     && pecl install memcache-$MEMCACHE_VERSION \
+# install imagick
     && pecl install imagick-$IMAGICK_VERSION \
+# Install php composer
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
 # Install igbinary (memcached's deps) \
     && pecl install igbinary \
