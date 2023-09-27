@@ -1,15 +1,17 @@
 FROM php:8-fpm-alpine
-ENV LD_LIBRARY_PATH /usr/lib/oracle/21/client64/lib
-ENV ORACLE_HOME /usr/lib/oracle/21/client64/lib
-ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
+ENV ORACLE_VERSION 21
+ENV ORACLE_MINOR=11
+ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
+ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
+ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 ENV NODE_VERSION 19.9.0
 # Install PHP Extensions (igbinary & memcached + memcache + oci8 + pdo_oci)
 RUN set -xe \
     && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
     && export URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64-musl.tar.xz" \
-    && export MAJOR=21 \
-    && export MINOR=8 \
+    && export MAJOR=$ORACLE_VERSION \
+    && export MINOR=$ORACLE_MINOR \
     && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-basic-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
     && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-sdk-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
     && export URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-sqlplus-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
