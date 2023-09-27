@@ -1,11 +1,11 @@
 FROM php:8-fpm-alpine
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
+ENV NODE_VERSION 19.9.0
 ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
-ENV NODE_VERSION 19.9.0
 # Install PHP Extensions (igbinary & memcached + memcache + oci8 + pdo_oci)
 RUN set -xe \
     && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
