@@ -3,10 +3,11 @@ ENV LD_LIBRARY_PATH /usr/lib/oracle/21/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/21/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/21/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
+ENV NODE_VERSION 19.9.0
 # Install PHP Extensions (igbinary & memcached + memcache + oci8 + pdo_oci)
 RUN set -xe \
     && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
-    && apk add --no-cache --update --virtual .nodejs --force-broken-world icu-data-full nodejs npm \
+    && export URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64-musl.tar.xz" \
     && export MAJOR=21 \
     && export MINOR=8 \
     && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${MAJOR}${MINOR}000/instantclient-basic-linux.x64-${MAJOR}.${MINOR}.0.0.0dbru.zip \
@@ -17,6 +18,10 @@ RUN set -xe \
     && export MEMCACHE_VERSION=8.0 \
     && export IMAGICK_VERSION=3.7.0 \
     && cd /tmp/ \
+    && curl -fsSLO --compressed $URL_NODEJS  \
+    && tar -xJf "node-v$NODE_VERSION-linux-x64-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
+    && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
+    && rm -f "node-v$NODE_VERSION-linux-x64-musl.tar.xz" \
 # install package need to build modules
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS \
     && apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev \
