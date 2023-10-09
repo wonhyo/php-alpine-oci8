@@ -30,6 +30,7 @@ RUN set -xe \
          docker-php-ext-enable apcu ; \ 
        fi \
     && if [ $WITH_ZIP -ne 0 ] ; then \
+          apk add --nocache --update libzip ; \
           apk add --no-cache --update --virtual .zip-deps libzip-dev; \
           docker-php-ext-install zip ; \
           apk del .zip-deps ; \
@@ -80,7 +81,7 @@ RUN set -xe \
          URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
          URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
-         OCI8_VERSION=3.2.1 ; \
+         OCI8_VERSION=3.3.0 ; \
          apk add --no-cache --update libnsl libaio libzip zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
          # install oracle client software \
