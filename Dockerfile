@@ -14,7 +14,7 @@ ENV WITH_PHP_COMPOSER 0
 ENV WITH_MYSQL 0
 ENV WITH_GD 1
 ENV WITH_IMAGEMAGICK 0
-ENV WITH_ZIP 0
+ENV WITH_ZIP 1
 ENV WITH_APCU 1
 ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
@@ -82,7 +82,7 @@ RUN set -xe \
          URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
          OCI8_VERSION=3.3.0 ; \
-         apk add --no-cache --update libnsl libaio libzip zlib; \
+         apk add --no-cache --update libnsl libaio zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
          # install oracle client software \
          curl $URL_BASE > /tmp/base.zip ; \
@@ -110,6 +110,7 @@ RUN set -xe \
          apk del .ldap-deps ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
+         apk add --no-cache --update icu icu-data-full ; \
          URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64-musl.tar.xz" ; \
          curl -fsSLO --compressed $URL_NODEJS ; \
          tar -xJf "node-v$NODE_VERSION-linux-x64-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner ; \
