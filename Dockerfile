@@ -1,9 +1,11 @@
 FROM php:8-fpm-alpine
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
+ENV WITH_NODE 1
 ENV NODE_VERSION 19.9.0
 ENV BUILD_CANVAS 1
-ENV PHP_VERSION 8
+ENV WITH_SQLITE 1 
+ENV WITH_POSTGRESQL 1
 ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
@@ -12,8 +14,7 @@ ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && echo "https://mirror.kku.ac.th/alpine/v3.18/main" > /etc/apk/repositories \
     && echo "https://mirror.kku.ac.th/alpine/v3.18/community" >> /etc/apk/repositories \
-    && apk add --no-cache --update sqlite git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
-    && if [ ! $BUILD_CANVAS -eq 0 ] ; then apk add --no-cache --update giflib pango cairo pixman ; fi \
+    && apk add --no-cache --update git libzip curl libmemcached-libs zlib libnsl libaio libldap freetype libpng libjpeg-turbo gcompat libgomp libpq imagemagick \
     && export URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64-musl.tar.xz" \
     && export URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip \
     && export URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip \
@@ -22,11 +23,6 @@ RUN set -xe \
     && export OCI8_VERSION=3.2.1 \
     && export MEMCACHE_VERSION=8.0 \
     && export IMAGICK_VERSION=3.7.0 \
-    && cd /tmp/ \
-    && curl -fsSLO --compressed $URL_NODEJS  \
-    && tar -xJf "node-v$NODE_VERSION-linux-x64-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner \
-    && ln -s /usr/local/bin/node /usr/local/bin/nodejs \
-    && rm -f "node-v$NODE_VERSION-linux-x64-musl.tar.xz" \
 # install package need to build modules \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS \
     && apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev \
@@ -36,12 +32,33 @@ RUN set -xe \
     && apk add --no-cache --update --virtual .zip-deps libzip-dev \
     && apk add --no-cache --update --virtual .curl-deps curl-dev \
     && apk add --no-cache --update --virtual .imagemagick imagemagick-dev \
-    && apk add --no-cache --update --virtual .postgresql postgresql-dev \
-    && apk add --no-cache --update --virtual .sqlite sqlite-dev \
-    && if [ ! $BUILD_CANVAS -eq 0 ]; then apk add --no-cache --update --virtual .canvas-deps python3 python3-dev pixman-dev giflib-dev pango-dev cairo-dev; npm install --build-from-source canvas ; fi \
+    && cd /tmp/ \
+    && if [ $WITH_NODE -ne 0 ] ; then \
+         curl -fsSLO --compressed $URL_NODEJS; \
+         tar -xJf "node-v$NODE_VERSION-linux-x64-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner ; \
+         ln -s /usr/local/bin/node /usr/local/bin/nodejs; \
+         rm -f "node-v$NODE_VERSION-linux-x64-musl.tar.xz"; \ 
+           if [ $BUILD_CANVAS -ne 0 ] ; then \
+             apk add --no-cache --update giflib pango cairo pixman; \
+             apk add --no-cache --update --virtual .canvas-deps python3 python3-dev pixman-dev giflib-dev pango-dev cairo-dev; \
+             npm install --build-from-source canvas ; \
+             apk del .canvas-deps ; \
+           fi \
+       fi \
+    && if [ $WITH_SQLITE -ne 0 ]; then \
+         apk add --no-cache --update sqlite ; \
+         apk add --no-cache --update --virtual .sqlite-deps sqlite-dev ; \
+         docker-php-ext-install pdo_sqlite ; \ 
+         apk del .sqlite-deps ; \ 
+       fi \
+    && if [ $WITH_POSTGRESQL -ne 0 ]; then \
+         apk add --no-cache --update --virtual .postgresql-deps postgresql-dev ; \
+         docker-php-ext-install pgsql pdo_pgsql ; \
+         apk del .postgresql-deps; \
+       fi \
 # install oracle client software \
-    && curl $URL_BASE > base.zip \
-    && curl $URL_SDK > sdk.zip \
+    && curl $URL_BASE > /tmp/base.zip \
+    && curl $URL_SDK > /tmp/sdk.zip \
     && mkdir -p /usr/lib/oracle/${ORACLE_VERSION}/client64/bin \
     && unzip -d /usr/lib/oracle/${ORACLE_VERSION}/client64 /tmp/base.zip \
     && mv /usr/lib/oracle/${ORACLE_VERSION}/client64/${BASE_NAME} ${ORACLE_HOME} \
@@ -76,8 +93,7 @@ RUN set -xe \
         --with-freetype \
         --with-jpeg \
     && pecl install apcu \
-    && docker-php-ext-install pgsql pdo_sqlite pdo_pgsql pdo_mysql pdo_oci ldap gd zip curl \
+    && docker-php-ext-install pdo_mysql pdo_oci ldap gd zip curl \
     && docker-php-ext-enable igbinary memcached memcache oci8 apcu imagick \
     && rm -rf ${ORACLE_HOME}/sdk /tmp/* \
-    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick .postgresql \
-    && if [ ! $BUILD_CANVAS -eq 0 ]; then apk del .canvas-deps ; fi
+    && apk del .memcached-deps .phpize-deps .oci8-deps .openldap-deps .gd-deps .zip-deps .curl-deps .imagemagick  
