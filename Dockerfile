@@ -2,6 +2,7 @@ FROM php:8-fpm-alpine
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
 ENV WITH_CURL 1
+ENV ARCH x64
 ENV WITH_ORACLE 1
 ENV WITH_LDAP 1
 ENV WITH_NODE 0
@@ -20,7 +21,6 @@ ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
-# Install PHP Extensions (igbinary & memcached + memcache + oci8 + pdo_oci)
 RUN set -xe \
     && echo "https://mirror.kku.ac.th/alpine/v3.18/main" > /etc/apk/repositories \
     && echo "https://mirror.kku.ac.th/alpine/v3.18/community" >> /etc/apk/repositories \
@@ -77,9 +77,15 @@ RUN set -xe \
          apk del .memcached-deps ; \
        fi \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
-         URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-         URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-         URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.x64-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+         if [ $ARCH -ne "x64"] ; then \
+            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip \
+            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip \
+            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip \
+         else \
+            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+         fi \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
          OCI8_VERSION=3.3.0 ; \
          apk add --no-cache --update libnsl libaio zlib; \
