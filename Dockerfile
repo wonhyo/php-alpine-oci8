@@ -3,6 +3,7 @@ ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
 ENV WITH_CURL 1
 ENV ARCH x64
+# ARM 64 Oracle version 19.19
 ENV WITH_ORACLE 1
 ENV WITH_LDAP 1
 ENV WITH_NODE 0
@@ -77,7 +78,7 @@ RUN set -xe \
          apk del .memcached-deps ; \
        fi \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
-         if [ $ARCH -ne "x64"] ; then \
+         if [ $ARCH -ne "x64" ] ; then \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip \
             URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip \
             URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip \
