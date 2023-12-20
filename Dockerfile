@@ -106,9 +106,8 @@ RUN set -xe \
          mv /usr/lib/oracle/${ORACLE_VERSION}/client64/lib/*i /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
          unzip -d /tmp /tmp/sdk.zip ; \
          mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} ; \
-         MTYPE=$(arch) \
-         ln -sf /lib/libc.musl-$MTYPE.so.1 /lib/libresolv.so.2 ; \
-         ln -sf /lib/ld-musl-$MTYPE.so.1 /lib/ld-linux-x86-64.so.2 ; \ 
+         ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
+         ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-x86-64.so.2 ; \ 
          # install oci8 \
          echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION ; \
          docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,$ORACLE_HOME ; \
