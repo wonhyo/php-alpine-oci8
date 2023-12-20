@@ -8,7 +8,7 @@ ENV WITH_ORACLE 1
 # ENV ORACLE_VERSION 19
 # ENV ORACLE_RELEASE 19
 ENV WITH_CURL 1
-ENV WITH_LDAP 0
+ENV WITH_LDAP 1
 ENV WITH_NODE 1
 ENV NODE_VERSION 19.9.0
 ENV NODE_ARCH x64
@@ -29,9 +29,15 @@ ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
-    && echo "https://mirror.kku.ac.th/alpine/v3.18/main" > /etc/apk/repositories \
-    && echo "https://mirror.kku.ac.th/alpine/v3.18/community" >> /etc/apk/repositories \
+#    && echo "https://mirror.kku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
+#    && echo "https://mirror.kku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
+    && if [ $WITH_LDAP -ne 0 ] ; then \
+         apk add --no-cache --update libldap ; \
+         apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
+         docker-php-ext-install ldap ; \
+         apk del .ldap-deps ; \
+       fi \
     && if [ $WITH_APCU -ne 0 ] ; then \
          pecl install apcu ; \
          docker-php-ext-enable apcu ; \ 
@@ -115,14 +121,6 @@ RUN set -xe \
          docker-php-ext-enable oci8 pdo_oci ; \
          apk del .oci8-deps ; \
          rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
-       fi \
-    && if [ $WITH_LDAP -ne 0 ] ; then \
-         apk add --no-cache --update libldap ; \
-         apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
-         docker-php-ext-configure ldap ; \
-         docker-php-ext-install ldap ; \
-         docker-php-ext-enable ldap ; \
-         apk del .ldap-deps ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
