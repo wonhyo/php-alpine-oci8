@@ -1,13 +1,19 @@
 FROM php:8-fpm-alpine
+ENV ARCH x64
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
-ENV WITH_CURL 1
-ENV ARCH x64
-# ARM 64 Oracle version 19.19
 ENV WITH_ORACLE 1
-ENV WITH_LDAP 1
+# ARM64 Oracle version arm64 19.19
+# ENV ARCH arm64
+# ENV ORACLE_VERSION 19
+# ENV ORACLE_RELEASE 19
+ENV WITH_CURL 1
+ENV WITH_LDAP 0
 ENV WITH_NODE 0
 ENV NODE_VERSION 19.9.0
+ENV NODE_ARCH x64
+# ARM64 Node
+# ENV NODE_ARCH armv6l
 ENV BUILD_CANVAS 1
 ENV WITH_SQLITE 0 
 ENV WITH_POSTGRESQL 0
@@ -111,18 +117,20 @@ RUN set -xe \
          rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \
     && if [ $WITH_LDAP -ne 0 ] ; then \
-         apk add --no-cache --update libldap; \
+         apk add --no-cache --update libldap ; \
          apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
+         docker-php-ext-configure ldap ; \
          docker-php-ext-install ldap ; \
+         docker-php-ext-enable ldap ; \
          apk del .ldap-deps ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
-         URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64-musl.tar.xz" ; \
+         URL_NODEJS="https://unofficial-builds.nodejs.org/download/release/v$NODE_VERSION/node-v$NODE_VERSION-linux-$NODE_ARCH-musl.tar.xz" ; \
          curl -fsSLO --compressed $URL_NODEJS ; \
-         tar -xJf "node-v$NODE_VERSION-linux-x64-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner ; \
+         tar -xJf "node-v$NODE_VERSION-linux-$NODE_ARCH-musl.tar.xz" -C /usr/local --strip-components=1 --no-same-owner ; \
          ln -s /usr/local/bin/node /usr/local/bin/nodejs; \
-         rm -f "node-v$NODE_VERSION-linux-x64-musl.tar.xz"; \ 
+         rm -f "node-v$NODE_VERSION-linux-$NODE_ARCH-musl.tar.xz"; \ 
            if [ $BUILD_CANVAS -ne 0 ] ; then \
              apk add --no-cache --update giflib pango cairo pixman; \
              apk add --no-cache --update --virtual .canvas-deps python3 python3-dev pixman-dev giflib-dev pango-dev cairo-dev; \
