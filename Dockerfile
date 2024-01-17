@@ -1,4 +1,4 @@
-FROM php:8-fpm-alpine
+FROM php:8.1-fpm-alpine
 ENV ARCH x64
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
@@ -24,6 +24,8 @@ ENV WITH_GD 1
 ENV WITH_IMAGEMAGICK 0
 ENV WITH_ZIP 1
 ENV WITH_APCU 1
+ENV WITH_OPENJDK 1
+ENV WITH_SOAP 1
 ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
@@ -32,6 +34,15 @@ RUN set -xe \
 #    && echo "https://mirror.kku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
 #    && echo "https://mirror.kku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
+    && if [ $WITH_SOAP -ne 0 ] ; then \
+         apk add --no-cache --update libxml2 ; \
+         apk add --no-cache --update --virtual .soap-deps postgresql-dev libxml2-dev ; \
+         docker-php-ext-install soap ; \
+         apk del .soap-deps ; \
+       fi \
+    && if [ $WITH_OPENJDK -ne 0 ] ; then \
+         apk add --no-cache --update openjdk8 ; \
+       fi \
     && if [ $WITH_LDAP -ne 0 ] ; then \
          apk add --no-cache --update libldap ; \
          apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
