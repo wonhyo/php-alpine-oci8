@@ -104,12 +104,12 @@ RUN set -xe \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
             URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
             URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip ; \
-            LIB_ARCH=$(arch) \
+            LIB_ARCH=$(arch) ; \
          else \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
             URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
             URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            LIB_ARCH="x86-64" \
+            LIB_ARCH="x86-64" ; \
          fi \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
