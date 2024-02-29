@@ -31,9 +31,42 @@ ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
-#    && echo "https://mirror.kku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
-#    && echo "https://mirror.kku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
+    && if [ ! $ARCH == "x64" ] ; then \
+            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
+            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
+            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip ; \
+            LIB_ARCH=$(arch) ; \
+       else \
+            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+            LIB_ARCH="x86-64" ; \
+       fi \ 
+    && if [ $WITH_ORACLE -ne 0 ] ; then \
+         BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
+         OCI8_VERSION=3.2.0 ; \
+         apk add --no-cache --update libnsl libaio zlib; \
+         apk add --no-cache --update --virtual .oci8-deps unzip ; \
+         # install oracle client software \
+         curl $URL_BASE > /tmp/base.zip ; \
+         curl $URL_SDK > /tmp/sdk.zip ; \
+         mkdir -p /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
+         unzip -d /usr/lib/oracle/${ORACLE_VERSION}/client64 /tmp/base.zip ; \
+         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/${BASE_NAME} ${ORACLE_HOME} ; \
+         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/lib/*i /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
+         unzip -d /tmp /tmp/sdk.zip ; \
+         mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} ; \
+         ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
+         ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
+         # install oci8 \
+         echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION ; \
+         docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,$ORACLE_HOME ; \
+         docker-php-ext-install pdo_oci ; \
+         docker-php-ext-enable oci8 pdo_oci ; \
+         apk del .oci8-deps ; \
+         rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
+       fi \
     && if [ $WITH_SOAP -ne 0 ] ; then \
          apk add --no-cache --update libxml2 ; \
          apk add --no-cache --update --virtual .soap-deps postgresql-dev libxml2-dev ; \
@@ -99,41 +132,6 @@ RUN set -xe \
          make install ; \
          docker-php-ext-enable igbinary memcached memcache ; \
          apk del .memcached-deps ; \
-       fi \
-    && if [ ! $ARCH == "x64" ] ; then \
-            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
-            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
-            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip ; \
-            LIB_ARCH=$(arch) ; \
-         else \
-            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            LIB_ARCH="x86-64" ; \
-         fi \ 
-    && if [ $WITH_ORACLE -ne 0 ] ; then \
-         BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
-         OCI8_VERSION=3.3.0 ; \
-         apk add --no-cache --update libnsl libaio zlib; \
-         apk add --no-cache --update --virtual .oci8-deps unzip ; \
-         # install oracle client software \
-         curl $URL_BASE > /tmp/base.zip ; \
-         curl $URL_SDK > /tmp/sdk.zip ; \
-         mkdir -p /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
-         unzip -d /usr/lib/oracle/${ORACLE_VERSION}/client64 /tmp/base.zip ; \
-         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/${BASE_NAME} ${ORACLE_HOME} ; \
-         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/lib/*i /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
-         unzip -d /tmp /tmp/sdk.zip ; \
-         mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} ; \
-         ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
-         ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
-         # install oci8 \
-         echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION ; \
-         docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,$ORACLE_HOME ; \
-         docker-php-ext-install pdo_oci ; \
-         docker-php-ext-enable oci8 pdo_oci ; \
-         apk del .oci8-deps ; \
-         rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
