@@ -9,7 +9,7 @@ ENV WITH_ORACLE 1
 # ENV ORACLE_RELEASE 19
 ENV WITH_CURL 1
 ENV WITH_LDAP 1
-ENV WITH_NODE 1
+ENV WITH_NODE 0
 ENV NODE_VERSION 19.9.0
 ENV NODE_ARCH x64
 # ARM64 Node
@@ -24,7 +24,7 @@ ENV WITH_GD 1
 ENV WITH_IMAGEMAGICK 0
 ENV WITH_ZIP 1
 ENV WITH_APCU 1
-ENV WITH_OPENJDK 1
+ENV WITH_OPENJDK 0
 ENV WITH_SOAP 1
 ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
@@ -45,7 +45,7 @@ RUN set -xe \
        fi \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
-         OCI8_VERSION=3.2.0 ; \
+         OCI8_VERSION=3.2.1 ; \
          apk add --no-cache --update libnsl libaio zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
          # install oracle client software \
