@@ -1,5 +1,7 @@
 FROM php:8.1-fpm-alpine
+COPY ./setup-module-version /tmp/
 ENV ARCH x64
+ENV PHP_MAJOR_VERSION 8
 ENV ORACLE_VERSION 21
 ENV ORACLE_RELEASE 11
 ENV WITH_ORACLE 1
@@ -31,6 +33,7 @@ ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
 ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
+    && source /tmp/setup-module-version \
     && echo "http://mirror1.ku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
     && echo "http://mirror1.ku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
@@ -47,7 +50,7 @@ RUN set -xe \
        fi \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
-         OCI8_VERSION=3.2.1 ; \
+         #OCI8_VERSION=3.2.1 ; \
          apk add --no-cache --update libnsl libaio zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
          # install oracle client software \
@@ -100,7 +103,7 @@ RUN set -xe \
          apk del .curl-deps ; \
        fi \
     && if [ $WITH_IMAGEMAGICK -ne 0 ] ; then \
-         IMAGICK_VERSION=3.7.0 ; \
+         #IMAGICK_VERSION=3.7.0 ; \
          apk add --no-cache --update imagemagick ; \
          apk add --no-cache --update --virtual .imagemagick-deps imagemagick-dev ; \
          pecl install imagick-$IMAGICK_VERSION ; \
@@ -121,7 +124,7 @@ RUN set -xe \
          curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
        fi \
     && if [ $WITH_MEMCACHE -ne 0 ] ; then \
-         MEMCACHE_VERSION=8.0 ; \
+         #MEMCACHE_VERSION=8.0 ; \
          apk add --no-cache --update libmemcached-libs libgomp ; \
          apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
          pecl install memcache-$MEMCACHE_VERSION ; \
