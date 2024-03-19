@@ -1,0 +1,17 @@
+#!/bin/bash
+
+case $PHP_MAJOR_VERSION in
+	8)
+	   OCI8_VERSION=3.2.1
+           IMAGICK_VERSION=3.7.0
+	   MEMCACHE_VERSION=8.0 
+	;;
+        7)
+	   OCI8_VERSION=2.2.0
+	   IMAGICK_VERSION=3.7.0
+	   MEMCACHE_VERSION=4.0.5.2
+	;;
+	*)
+	echo "EMPTY"
+	;;
+esac
