@@ -21,7 +21,7 @@ ENV WITH_SQLITE 0
 ENV WITH_POSTGRESQL 0
 ENV WITH_MEMCACHE 1
 ENV WITH_PHP_COMPOSER 0
-ENV WITH_MYSQL 0
+ENV WITH_PDO_MYSQL 0
 ENV WITH_GD 1
 ENV WITH_IMAGEMAGICK 0
 ENV WITH_ZIP 1
@@ -117,7 +117,7 @@ RUN set -xe \
          docker-php-ext-install gd ; \
          apk del .gd-deps ; \
        fi \
-    && if [ $WITH_MYSQL -ne 0] ; then \
+    && if [ $WITH_PDO_MYSQL -ne 0 ] ; then \
          docker-php-ext-install pdo_mysql ; \
        fi \
     && if [ $WITH_PHP_COMPOSER -ne 0 ] ; then \
