@@ -1,4 +1,4 @@
-FROM php:8.1-fpm-alpine
+FROM docker.io/php:8.1-fpm-alpine
 COPY ./setup-module-version /tmp/
 ENV ARCH x64
 ENV PHP_MAJOR_VERSION 8
