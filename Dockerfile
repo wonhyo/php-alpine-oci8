@@ -34,9 +34,9 @@ ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && source /tmp/setup-module-version \
-#    && echo "http://mirror1.ku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
-#    && echo "http://mirror1.ku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
+    && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
+    && pecl channel-update pecl.php.net \
     && if [ ! $ARCH == "x64" ] ; then \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
             URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
@@ -69,14 +69,14 @@ RUN set -xe \
          docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,$ORACLE_HOME ; \
          docker-php-ext-install pdo_oci ; \
          docker-php-ext-enable oci8 pdo_oci ; \
-         apk del .oci8-deps ; \
+         apk del --no-cache .oci8-deps ; \
          rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \
     && if [ $WITH_SOAP -ne 0 ] ; then \
          apk add --no-cache --update libxml2 ; \
          apk add --no-cache --update --virtual .soap-deps postgresql-dev libxml2-dev ; \
          docker-php-ext-install soap ; \
-         apk del .soap-deps ; \
+         apk del --no-cache .soap-deps ; \
        fi \
     && if [ $WITH_OPENJDK -ne 0 ] ; then \
          apk add --no-cache --update openjdk8 ; \
@@ -85,7 +85,7 @@ RUN set -xe \
          apk add --no-cache --update libldap ; \
          apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
          docker-php-ext-install ldap ; \
-         apk del .ldap-deps ; \
+         apk del --no-cache .ldap-deps ; \
        fi \
     && if [ $WITH_APCU -ne 0 ] ; then \
          pecl install apcu ; \
@@ -95,12 +95,12 @@ RUN set -xe \
           apk add --nocache --update libzip ; \
           apk add --no-cache --update --virtual .zip-deps libzip-dev; \
           docker-php-ext-install zip ; \
-          apk del .zip-deps ; \
+          apk del --no-cache .zip-deps ; \
        fi \
     && if [ $WITH_CURL -ne 0 ] ; then \
          apk add --no-cache --update --virtual .curl-deps curl-dev ; \
          docker-php-ext-install curl ; \
-         apk del .curl-deps ; \
+         apk del --no-cache .curl-deps ; \
        fi \
     && if [ $WITH_IMAGEMAGICK -ne 0 ] ; then \
          #IMAGICK_VERSION=3.7.0 ; \
@@ -108,14 +108,14 @@ RUN set -xe \
          apk add --no-cache --update --virtual .imagemagick-deps imagemagick-dev ; \
          pecl install imagick-$IMAGICK_VERSION ; \
          docker-php-ext-enable imagick ; \
-         apk del .imagemagick-deps ; \
+         apk del --no-cache .imagemagick-deps ; \
        fi \
     && if [ $WITH_GD -ne 0 ] ; then \
          apk add --no-cache --update freetype libpng libjpeg-turbo ; \
          apk add --no-cache --update --virtual .gd-deps freetype-dev libpng-dev libjpeg-turbo-dev ; \
          docker-php-ext-configure gd --with-freetype --with-jpeg ; \
          docker-php-ext-install gd ; \
-         apk del .gd-deps ; \
+         apk del --no-cache .gd-deps ; \
        fi \
     && if [ $WITH_PDO_MYSQL -ne 0 ] ; then \
          docker-php-ext-install pdo_mysql ; \
@@ -136,7 +136,7 @@ RUN set -xe \
          make -j$(nproc) ; \
          make install ; \
          docker-php-ext-enable igbinary memcached memcache ; \
-         apk del .memcached-deps ; \
+         apk del --no-cache .memcached-deps ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
@@ -149,19 +149,19 @@ RUN set -xe \
              apk add --no-cache --update giflib pango cairo pixman; \
              apk add --no-cache --update --virtual .canvas-deps python3 python3-dev pixman-dev giflib-dev pango-dev cairo-dev; \
              npm install -g --build-from-source canvas ; \
-             apk del .canvas-deps ; \
+             apk del --no-cache .canvas-deps ; \
            fi \
        fi \
     && if [ $WITH_SQLITE -ne 0 ]; then \
          apk add --no-cache --update sqlite ; \
          apk add --no-cache --update --virtual .sqlite-deps sqlite-dev ; \
          docker-php-ext-install pdo_sqlite ; \ 
-         apk del .sqlite-deps ; \ 
+         apk del --no-cache .sqlite-deps ; \ 
        fi \
     && if [ $WITH_POSTGRESQL -ne 0 ]; then \
          apk add --no-cache --update libpq ; \
          apk add --no-cache --update --virtual .postgresql-deps postgresql-dev ; \
          docker-php-ext-install pgsql pdo_pgsql ; \
-         apk del .postgresql-deps; \
+         apk del --no-cache .postgresql-deps; \
        fi \
-    && apk del .phpize-deps
+    && apk del --no-cache .phpize-deps
