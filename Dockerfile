@@ -3,7 +3,7 @@ COPY ./setup-module-version /tmp/
 ENV ARCH x64
 ENV PHP_MAJOR_VERSION 7
 ENV ORACLE_VERSION 21
-ENV ORACLE_RELEASE 11
+ENV ORACLE_RELEASE 13
 ENV WITH_ORACLE 1
 # ARM64 Oracle version arm64 19.19
 # ENV ARCH arm64
@@ -20,10 +20,10 @@ ENV BUILD_CANVAS 0
 ENV WITH_SQLITE 0 
 ENV WITH_POSTGRESQL 0
 ENV WITH_MEMCACHE 1
-ENV WITH_PHP_COMPOSER 0
-ENV WITH_MYSQL 0
+ENV WITH_PHP_COMPOSER 1
+ENV WITH_PDO_MYSQL 1
 ENV WITH_GD 1
-ENV WITH_IMAGEMAGICK 0
+ENV WITH_IMAGEMAGICK 1
 ENV WITH_ZIP 1
 ENV WITH_APCU 1
 ENV WITH_OPENJDK 0
@@ -117,7 +117,7 @@ RUN set -xe \
          docker-php-ext-install gd ; \
          apk del .gd-deps ; \
        fi \
-    && if [ $WITH_MYSQL -ne 0] ; then \
+    && if [ $WITH_PDO_MYSQL -ne 0 ] ; then \
          docker-php-ext-install pdo_mysql ; \
        fi \
     && if [ $WITH_PHP_COMPOSER -ne 0 ] ; then \
