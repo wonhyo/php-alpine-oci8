@@ -1,4 +1,4 @@
-FROM php:7.4-fpm-alpine
+FROM docker.io/php:7.4-fpm-alpine
 COPY ./setup-module-version /tmp/
 ENV ARCH x64
 ENV PHP_MAJOR_VERSION 7
@@ -34,8 +34,8 @@ ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && source /tmp/setup-module-version \
-#    && echo "http://mirror1.ku.ac.th/alpine/v3.19/main" > /etc/apk/repositories \
-#    && echo "http://mirror1.ku.ac.th/alpine/v3.19/community" >> /etc/apk/repositories \
+    && apk update \
+    && apk upgrade  \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && if [ ! $ARCH == "x64" ] ; then \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
