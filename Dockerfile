@@ -8,7 +8,7 @@ ENV WITH_ORACLE 1
 # ARM64 Oracle version arm64 19.19
 # ENV ARCH arm64
 # ENV ORACLE_VERSION 19
-# ENV ORACLE_RELEASE 19
+# ENV ORACLE_RELEASE 22
 ENV WITH_CURL 1
 ENV WITH_LDAP 1
 ENV WITH_NODE 0
@@ -34,7 +34,7 @@ ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && source /tmp/setup-module-version \
-    && apk upgrade --no-cache  \
+    && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && if [ ! $ARCH == "x64" ] ; then \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
