@@ -1,4 +1,4 @@
-FROM docker.io/php:8.1-fpm-alpine
+FROM docker.io/php:8-fpm-alpine
 COPY ./setup-module-version /tmp/
 ENV ARCH x64
 ENV PHP_MAJOR_VERSION 8
@@ -168,6 +168,6 @@ RUN set -xe \
          apk del --no-cache .postgresql-deps; \
        fi \
     && apk del --no-cache .phpize-deps \
-    && if [ $WITH_GS -ne 0] ; then \
+    && if [ $WITH_GS -ne 0 ] ; then \
          apk add --no-cache ghostscript ; \
        fi
