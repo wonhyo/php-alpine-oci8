@@ -51,9 +51,6 @@ RUN set -xe \
             LIB_ARCH="x86-64" ; \
             fi \
        fi \
-    && if [ $WITH_GS -ne 0] ; then \
-         apk add --no-cache ghostscript ; \
-       fi \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          BASE_NAME=instantclient_${ORACLE_MAJOR} ; \
          #OCI8_VERSION=3.2.1 ; \
@@ -170,4 +167,7 @@ RUN set -xe \
          docker-php-ext-install pgsql pdo_pgsql ; \
          apk del --no-cache .postgresql-deps; \
        fi \
-    && apk del --no-cache .phpize-deps
+    && apk del --no-cache .phpize-deps \
+    && if [ $WITH_GS -ne 0] ; then \
+         apk add --no-cache ghostscript ; \
+       fi
