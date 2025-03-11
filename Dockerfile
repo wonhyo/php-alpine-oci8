@@ -2,13 +2,15 @@ FROM docker.io/php:8.1-fpm-alpine
 COPY ./setup-module-version /tmp/
 ENV ARCH x64
 ENV PHP_MAJOR_VERSION 8
-ENV ORACLE_VERSION 21
-ENV ORACLE_RELEASE 13
+ENV ORACLE_MAJOR 23
+ENV ORACLE_MINOR 7.0.25.01
+ENV ORACLE_VERSION 2370000
 ENV WITH_ORACLE 1
+ENV WITH_GS 1
 # ARM64 Oracle version arm64 19.19
 # ENV ARCH arm64
 # ENV ORACLE_VERSION 19
-# ENV ORACLE_RELEASE 19
+# ENV ORACLE_RELEASE 19.0.0.0
 ENV WITH_CURL 1
 ENV WITH_LDAP 1
 ENV WITH_NODE 0
@@ -17,8 +19,8 @@ ENV NODE_ARCH x64
 # ARM64 Node
 # ENV NODE_ARCH armv6l
 ENV BUILD_CANVAS 0
-ENV WITH_SQLITE 0 
-ENV WITH_POSTGRESQL 0
+ENV WITH_SQLITE 1
+ENV WITH_POSTGRESQL 1
 ENV WITH_MEMCACHE 1
 ENV WITH_PHP_COMPOSER 1
 ENV WITH_PDO_MYSQL 1
@@ -28,40 +30,44 @@ ENV WITH_ZIP 1
 ENV WITH_APCU 1
 ENV WITH_OPENJDK 0
 ENV WITH_SOAP 1
-ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_VERSION/client64/lib
-ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_VERSION/client64/lib
-ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_VERSION/client64/lib/network/admin
+ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_MAJOR/client64/lib
+ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_MAJOR/client64/lib
+ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_MAJOR/client64/lib/network/admin
 ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && source /tmp/setup-module-version \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && pecl channel-update pecl.php.net \
-    && if [ ! $ARCH == "x64" ] ; then \
+    && if [ ! $ARCH == "x64" && $WITH_ORACLE -ne 0 ] ; then \
             URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
             URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
             URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip ; \
             LIB_ARCH=$(arch) ; \
-       else \
-            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-basic-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sdk-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
-            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}${ORACLE_RELEASE}000/instantclient-sqlplus-linux.$ARCH-${ORACLE_VERSION}.${ORACLE_RELEASE}.0.0.0dbru.zip ; \
+       else if [ $WITH_ORACLE -ne 0 ] ; then \
+            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
+            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
+            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
             LIB_ARCH="x86-64" ; \
+            fi \
+       fi \
+    && if [ $WITH_GS -ne 0] ; then \
+         apk add --no-cache ghostscript ; \
        fi \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
-         BASE_NAME=instantclient_${ORACLE_VERSION}_${ORACLE_RELEASE} ; \
+         BASE_NAME=instantclient_${ORACLE_MAJOR} ; \
          #OCI8_VERSION=3.2.1 ; \
          apk add --no-cache --update libnsl libaio zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
          # install oracle client software \
          curl $URL_BASE > /tmp/base.zip ; \
          curl $URL_SDK > /tmp/sdk.zip ; \
-         mkdir -p /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
-         unzip -d /usr/lib/oracle/${ORACLE_VERSION}/client64 /tmp/base.zip ; \
-         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/${BASE_NAME} ${ORACLE_HOME} ; \
-         mv /usr/lib/oracle/${ORACLE_VERSION}/client64/lib/*i /usr/lib/oracle/${ORACLE_VERSION}/client64/bin ; \
+         mkdir -p /usr/lib/oracle/${ORACLE_MAJOR}/client64/bin ; \
+         unzip -d /usr/lib/oracle/${ORACLE_MAJOR}/client64 /tmp/base.zip ; \
+         mv /usr/lib/oracle/${ORACLE_MAJOR}/client64/${BASE_NAME}* ${ORACLE_HOME} ; \
+         mv /usr/lib/oracle/${ORACLE_MAJOR}/client64/lib/*i /usr/lib/oracle/${ORACLE_MAJOR}/client64/bin ; \
          unzip -d /tmp /tmp/sdk.zip ; \
-         mv /tmp/${BASE_NAME}/sdk ${ORACLE_HOME} ; \
+         mv /tmp/${BASE_NAME}*/sdk ${ORACLE_HOME} ; \
          ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
          ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
          # install oci8 \
