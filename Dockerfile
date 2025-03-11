@@ -7,10 +7,6 @@ ENV ORACLE_MINOR 7.0.25.01
 ENV ORACLE_VERSION 2370000
 ENV WITH_ORACLE 1
 ENV WITH_GS 1
-# ARM64 Oracle version arm64 19.19
-# ENV ARCH arm64
-# ENV ORACLE_VERSION 19
-# ENV ORACLE_RELEASE 19.0.0.0
 ENV WITH_CURL 1
 ENV WITH_LDAP 1
 ENV WITH_NODE 0
@@ -39,19 +35,11 @@ RUN set -xe \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && pecl channel-update pecl.php.net \
-    && if [ ! $ARCH == "x64" && $WITH_ORACLE -ne 0 ] ; then \
-            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/instantclient-basiclite-linux-$ARCH.zip ; \
-            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sdk-linux-$ARCH.zip ; \
-            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/instantclient-sqlplus-linux-$ARCH.zip ; \
-            LIB_ARCH=$(arch) ; \
-       else if [ $WITH_ORACLE -ne 0 ] ; then \
-            URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
-            URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
-            URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
-            LIB_ARCH="x86-64" ; \
-            fi \
-       fi \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
+         LIB_ARCH=$(arch) ; \
+         URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
+         URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
+         URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          BASE_NAME=instantclient_${ORACLE_MAJOR} ; \
          #OCI8_VERSION=3.2.1 ; \
          apk add --no-cache --update libnsl libaio zlib; \
