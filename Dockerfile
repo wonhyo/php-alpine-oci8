@@ -1,7 +1,7 @@
 FROM docker.io/php:8-fpm-alpine
 COPY ./setup-module-version /tmp/
 ENV ARCH x64
-ENV PHP_MAJOR_VERSION 8
+ENV PHP_MAJOR_VERSION 8.4
 ENV ORACLE_MAJOR 23
 ENV ORACLE_MINOR 7.0.25.01
 ENV ORACLE_VERSION 2370000
@@ -37,6 +37,7 @@ RUN set -xe \
     && pecl channel-update pecl.php.net \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          LIB_ARCH=$(arch) ; \
+         LIB_ARCH=$(echo $LIB_ARCH | sed -e 's/_/-/' ) ; \
          URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
@@ -57,9 +58,9 @@ RUN set -xe \
          ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
          # install oci8 \
          echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION ; \
-         docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,$ORACLE_HOME ; \
-         docker-php-ext-install pdo_oci ; \
-         docker-php-ext-enable oci8 pdo_oci ; \
+         echo "instantclient,${ORACLE_HOME}" | pecl install pdo_oci-$PDO_OCI_VERSION ; \ 
+         docker-php-ext-enable oci8 ; \
+         docker-php-ext-enable pdo_oci ; \
          apk del --no-cache .oci8-deps ; \
          rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \

@@ -1,6 +1,12 @@
 #!/bin/bash
 
 case $PHP_MAJOR_VERSION in
+        8.4)
+	   OCI8_VERSION=3.4.0
+	   PDO_OCI_VERSION=1.1.0
+           IMAGICK_VERSION=3.7.0
+	   MEMCACHE_VERSION=8.2
+        ;;
 	8)
 	   OCI8_VERSION=3.2.1
            IMAGICK_VERSION=3.7.0
