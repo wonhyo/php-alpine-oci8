@@ -1,43 +1,22 @@
 FROM docker.io/php:8-fpm-alpine
 COPY ./setup-module-version /tmp/
-ENV ARCH x64
-ENV PHP_MAJOR_VERSION 8.4
-ENV ORACLE_MAJOR 23
-ENV ORACLE_MINOR 7.0.25.01
-ENV ORACLE_VERSION 2370000
-ENV WITH_ORACLE 1
-ENV WITH_GS 1
-ENV WITH_CURL 1
-ENV WITH_LDAP 1
-ENV WITH_NODE 0
-ENV NODE_VERSION 19.9.0
-ENV NODE_ARCH x64
-# ARM64 Node
-# ENV NODE_ARCH armv6l
-ENV BUILD_CANVAS 0
-ENV WITH_SQLITE 1
-ENV WITH_POSTGRESQL 1
-ENV WITH_MEMCACHE 1
-ENV WITH_PHP_COMPOSER 1
-ENV WITH_PDO_MYSQL 1
-ENV WITH_GD 1
-ENV WITH_IMAGEMAGICK 1
-ENV WITH_ZIP 1
-ENV WITH_APCU 1
-ENV WITH_OPENJDK 0
-ENV WITH_SOAP 1
-ENV LD_LIBRARY_PATH /usr/lib/oracle/$ORACLE_MAJOR/client64/lib
-ENV ORACLE_HOME /usr/lib/oracle/$ORACLE_MAJOR/client64/lib
-ENV TNS_ADMIN /usr/lib/oracle/$ORACLE_MAJOR/client64/lib/network/admin
-ENV NLS_LANG AMERICAN_AMERICA.UTF8
 RUN set -xe \
     && source /tmp/setup-module-version \
+    && echo "export LD_LIBRARY_PATH=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib" > /etc/profile.d/oracle-client.sh \
+    && echo "export ORACLE_HOME=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib" >> /etc/profile.d/oracle-client.sh \
+    && echo "export TNS_ADMIN=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib/network/admin" >> /etc/profile.d/oracle-client.sh \
+    && echo "export NLS_LANG=AMERICAN_AMERICA.UTF8" >> /etc/profile.d/oracle-client.sh \
+    && source /etc/profile \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && pecl channel-update pecl.php.net \
+    && LIB_ARCH=$(arch) \
+    && ARCH=$(arch) \
+    && if [ $LIB_ARCH == "x86_64" ] ; then \
+	    ARCH="x64" ; \
+	    LIB_ARCH="x86-64" ; \
+       fi \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
-         LIB_ARCH=$(arch) ; \
-         LIB_ARCH=$(echo $LIB_ARCH | sed -e 's/_/-/' ) ; \
          URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
