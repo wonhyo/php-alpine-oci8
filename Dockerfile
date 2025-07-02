@@ -1,4 +1,4 @@
-FROM docker.io/php:8-fpm-alpine
+FROM docker.io/php:8.1-fpm-alpine
 COPY ./setup-module-version /tmp/
 RUN set -xe \
     && source /tmp/setup-module-version \
