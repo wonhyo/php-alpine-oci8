@@ -1,6 +1,8 @@
-FROM docker.io/php:8.1-fpm-alpine
+ARG VERSION=8
+FROM docker.io/php:${VERSION}-fpm-alpine
 COPY ./setup-module-version /tmp/
 RUN set -xe \
+    && echo $PHP_VERSION \
     && source /tmp/setup-module-version \
     && echo "export LD_LIBRARY_PATH=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib" > /etc/profile.d/oracle-client.sh \
     && echo "export ORACLE_HOME=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib" >> /etc/profile.d/oracle-client.sh \
