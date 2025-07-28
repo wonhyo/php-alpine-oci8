@@ -44,7 +44,7 @@ case $PHP_VERSION in
            IMAGICK_VERSION=3.7.0
 	   MEMCACHE_VERSION=8.2
         ;;
-	8.1* | 8.2* )
+	8.1* | 8.2* | 8.3* )
 	   OCI8_VERSION=3.2.1
            IMAGICK_VERSION=3.7.0
 	   MEMCACHE_VERSION=8.0 
