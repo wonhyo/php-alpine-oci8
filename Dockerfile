@@ -39,11 +39,17 @@ RUN set -xe \
 	 pecl_get oci8-${OCI8_VERSION}.tgz ; \
          echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./oci8-$OCI8_VERSION.tgz ; \
          docker-php-ext-enable oci8 ; \
+       fi \
+    && if [ $WITH_ORACLE -ne 0 ] && [ $BUILD_PDO_OCI -ne 0 ] ; then \
+         pecl_get pdo_oci-${PDO_OCI_VERSION}.tgz ; \
+         echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./pdo_oci-${PDO_OCI_VERSION}.tgz ; \
+         docker-php-ext-enable pdo_oci ; \
+         apk del --no-cache .oci8-deps ; \
+       fi \
+    && if [ $WITH_ORACLE -ne 0 ] && [ $BUILD_PDO_OCI -eq 0 ] ; then \
 	 docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,${ORACLE_HOME} ; \
 	 docker-php-ext-install pdo_oci ; \
-
          apk del --no-cache .oci8-deps ; \
-         rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \
     && if [ $WITH_SOAP -ne 0 ] ; then \
          apk add --no-cache --update libxml2 ; \
@@ -64,7 +70,6 @@ RUN set -xe \
          pecl_get APCu ; \
          pecl install --offline ./APCu ; \
          docker-php-ext-enable apcu ; \ 
-	 rm -rf /tmp/* ; \
        fi \
     && if [ $WITH_ZIP -ne 0 ] ; then \
           apk add --nocache --update libzip ; \
@@ -85,7 +90,6 @@ RUN set -xe \
          pecl install --offline imagick-${IMAGICK_VERSION}.tgz ; \
          docker-php-ext-enable imagick ; \
          apk del --no-cache .imagemagick-deps ; \
-	 rm -rf /tmp/* ; \
        fi \
     && if [ $WITH_GD -ne 0 ] ; then \
          apk add --no-cache --update freetype libpng libjpeg-turbo ; \
@@ -117,7 +121,6 @@ RUN set -xe \
          make install ; \
          docker-php-ext-enable igbinary memcached memcache ; \
          apk del --no-cache .memcached-deps ; \
-	 rm -rf /tmp/* ; \
 	 cd /tmp ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
@@ -146,8 +149,9 @@ RUN set -xe \
          docker-php-ext-install pgsql pdo_pgsql ; \
          apk del --no-cache .postgresql-deps; \
        fi \
-    && apk del --no-cache .phpize-deps \
     && if [ $WITH_GS -ne 0 ] ; then \
          apk add --no-cache ghostscript ; \ 
-       fi
+       fi \
+    && apk del --no-cache .phpize-deps \
+    && rm -rf /tmp/* \ 
 

@@ -42,16 +42,20 @@ case $PHP_VERSION in
 	   OCI8_VERSION=3.4.0
            IMAGICK_VERSION=3.7.0
 	   MEMCACHE_VERSION=8.2
+	   BUILD_PDO_OCI=1
+	   PDO_OCI_VERSION=1.2.0
         ;;
 	8.1* | 8.2* | 8.3* )
 	   OCI8_VERSION=3.2.1
            IMAGICK_VERSION=3.7.0
-	   MEMCACHE_VERSION=8.0 
+	   MEMCACHE_VERSION=8.0
+	   BUILD_PDO_OCI=0
 	;;
         7.4* )
 	   OCI8_VERSION=2.2.0
 	   IMAGICK_VERSION=3.7.0
 	   MEMCACHE_VERSION=4.0.5.2
+	   BUILD_PDO_OCI=0
 	;;
 	*)
 	echo "EMPTY"
@@ -59,5 +63,6 @@ case $PHP_VERSION in
 esac
 
 pecl_get(){
-	curl -O https://pecl.php.net/get/$1 
+   curl -O https://pecl.php.net/get/$1 
 }
+
