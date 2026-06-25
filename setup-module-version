@@ -31,9 +31,9 @@ case $ORACLE_CLIENT_VERSION in
        ORACLE_MINOR=7.0.25.01
     ;;
     *)
-       ORACLE_VERSION=2118000
+       ORACLE_VERSION=2122000
        ORACLE_MAJOR=21
-       ORACLE_MINOR=18.0.0.0dbru
+       ORACLE_MINOR=22.0.0.0dbru
     ;;
 esac
 
