@@ -37,11 +37,11 @@ RUN set -xe \
          ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
          # install oci8 \
 	 pecl_get oci8-${OCI8_VERSION}.tgz ; \
-	 pecl_get pdo_oci-${PDO_OCI_VERSION}.tgz ; \
          echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./oci8-$OCI8_VERSION.tgz ; \
-         echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./pdo_oci-$PDO_OCI_VERSION.tgz ; \ 
          docker-php-ext-enable oci8 ; \
-         docker-php-ext-enable pdo_oci ; \
+	 docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,${ORACLE_HOME} ; \
+	 docker-php-ext-install pdo_oci ; \
+
          apk del --no-cache .oci8-deps ; \
          rm -rf ${ORACLE_HOME}/sdk /tmp/* ; \
        fi \
@@ -148,5 +148,6 @@ RUN set -xe \
        fi \
     && apk del --no-cache .phpize-deps \
     && if [ $WITH_GS -ne 0 ] ; then \
-         apk add --no-cache ghostscript ; \
+         apk add --no-cache ghostscript ; \ 
        fi
+
