@@ -1,4 +1,4 @@
-ARG VERSION=8
+ARG VERSION=7
 FROM docker.io/php:${VERSION}-fpm-alpine
 COPY ./setup-module-version /tmp/
 RUN set -xe \
@@ -8,25 +8,23 @@ RUN set -xe \
     && echo "export ORACLE_HOME=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib" >> /etc/profile.d/oracle-client.sh \
     && echo "export TNS_ADMIN=/usr/lib/oracle/$ORACLE_MAJOR/client64/lib/network/admin" >> /etc/profile.d/oracle-client.sh \
     && echo "export NLS_LANG=AMERICAN_AMERICA.UTF8" >> /etc/profile.d/oracle-client.sh \
-    && source /etc/profile \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
-    && pecl channel-update pecl.php.net \
+    && source /etc/profile \
     && LIB_ARCH=$(arch) \
     && ARCH=$(arch) \
     && if [ $LIB_ARCH == "x86_64" ] ; then \
 	    ARCH="x64" ; \
 	    LIB_ARCH="x86-64" ; \
-       fi \
+       fi \ 
+    && cd /tmp \ 
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SQLPLUS=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sqlplus-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          BASE_NAME=instantclient_${ORACLE_MAJOR} ; \
-         #OCI8_VERSION=3.2.1 ; \
          apk add --no-cache --update libnsl libaio zlib; \
          apk add --no-cache --update --virtual .oci8-deps unzip ; \
-         # install oracle client software \
          curl $URL_BASE > /tmp/base.zip ; \
          curl $URL_SDK > /tmp/sdk.zip ; \
          mkdir -p /usr/lib/oracle/${ORACLE_MAJOR}/client64/bin ; \
@@ -38,8 +36,10 @@ RUN set -xe \
          ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
          ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
          # install oci8 \
-         echo "instantclient,${ORACLE_HOME}" | pecl install oci8-$OCI8_VERSION ; \
-         echo "instantclient,${ORACLE_HOME}" | pecl install pdo_oci-$PDO_OCI_VERSION ; \ 
+	 pecl_get oci8-${OCI8_VERSION}.tgz ; \
+	 pecl_get pdo_oci-${PDO_OCI_VERSION}.tgz ; \
+         echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./oci8-$OCI8_VERSION.tgz ; \
+         echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./pdo_oci-$PDO_OCI_VERSION.tgz ; \ 
          docker-php-ext-enable oci8 ; \
          docker-php-ext-enable pdo_oci ; \
          apk del --no-cache .oci8-deps ; \
@@ -61,8 +61,10 @@ RUN set -xe \
          apk del --no-cache .ldap-deps ; \
        fi \
     && if [ $WITH_APCU -ne 0 ] ; then \
-         pecl install apcu ; \
+         pecl_get APCu ; \
+         pecl install --offline ./APCu ; \
          docker-php-ext-enable apcu ; \ 
+	 rm -rf /tmp/* ; \
        fi \
     && if [ $WITH_ZIP -ne 0 ] ; then \
           apk add --nocache --update libzip ; \
@@ -79,9 +81,11 @@ RUN set -xe \
          #IMAGICK_VERSION=3.7.0 ; \
          apk add --no-cache --update imagemagick ; \
          apk add --no-cache --update --virtual .imagemagick-deps imagemagick-dev ; \
-         pecl install imagick-$IMAGICK_VERSION ; \
+	 pecl_get --offline imagick-${IMAGICK_VERSION}.tgz ; \
+         pecl install --offline imagick-${IMAGICK_VERSION}.tgz ; \
          docker-php-ext-enable imagick ; \
          apk del --no-cache .imagemagick-deps ; \
+	 rm -rf /tmp/* ; \
        fi \
     && if [ $WITH_GD -ne 0 ] ; then \
          apk add --no-cache --update freetype libpng libjpeg-turbo ; \
@@ -100,9 +104,12 @@ RUN set -xe \
          #MEMCACHE_VERSION=8.0 ; \
          apk add --no-cache --update libmemcached-libs libgomp ; \
          apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
-         pecl install memcache-$MEMCACHE_VERSION ; \
-         pecl install igbinary ; \
-         pecl install --nobuild memcached ; \
+         pecl_get memcache-${MEMCACHE_VERSION}.tgz ; \
+         pecl install --offline memcache-${MEMCACHE_VERSION}.tgz ; \
+         pecl_get igbinary ; \
+         pecl install --offline ./igbinary ; \
+         pecl_get memcached ; \
+         pecl install --nobuild --offline memcached ; \
          cd "$(pecl config-get temp_dir)/memcached" ; \
          phpize ; \
          ./configure --enable-memcached-igbinary ; \
@@ -110,6 +117,8 @@ RUN set -xe \
          make install ; \
          docker-php-ext-enable igbinary memcached memcache ; \
          apk del --no-cache .memcached-deps ; \
+	 rm -rf /tmp/* ; \
+	 cd /tmp ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
