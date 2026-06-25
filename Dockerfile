@@ -17,7 +17,12 @@ RUN set -xe \
 	    ARCH="x64" ; \
 	    LIB_ARCH="x86-64" ; \
        fi \ 
-    && cd /tmp \ 
+    && cd /tmp \
+    && if [ $WITH_REDIS -ne 0 ] ; then \
+	 pecl_get redis ; \
+         pecl install --offline ./redis ; \
+         docker-php-ext-enable redis ; \
+       fi \
     && if [ $WITH_ORACLE -ne 0 ] ; then \
          URL_BASE=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-basic-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
          URL_SDK=https://download.oracle.com/otn_software/linux/instantclient/${ORACLE_VERSION}/instantclient-sdk-linux.$ARCH-${ORACLE_MAJOR}.${ORACLE_MINOR}.zip ; \
@@ -35,7 +40,6 @@ RUN set -xe \
          mv /tmp/${BASE_NAME}*/sdk ${ORACLE_HOME} ; \
          ln -sf /lib/libc.musl-$(arch).so.1 /lib/libresolv.so.2 ; \
          ln -sf /lib/ld-musl-$(arch).so.1 /lib/ld-linux-${LIB_ARCH}.so.2 ; \ 
-         # install oci8 \
 	 pecl_get oci8-${OCI8_VERSION}.tgz ; \
          echo "instantclient,${ORACLE_HOME}" | pecl install --offline ./oci8-$OCI8_VERSION.tgz ; \
          docker-php-ext-enable oci8 ; \
