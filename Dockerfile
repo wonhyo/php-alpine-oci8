@@ -77,7 +77,7 @@ RUN set -xe \
          docker-php-ext-enable apcu ; \ 
        fi \
     && if [ $WITH_ZIP -ne 0 ] ; then \
-          apk add --nocache --update libzip ; \
+          apk add --no-cache --update libzip ; \
           apk add --no-cache --update --virtual .zip-deps libzip-dev; \
           docker-php-ext-install zip ; \
           apk del --no-cache .zip-deps ; \
