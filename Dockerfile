@@ -11,7 +11,6 @@ RUN set -xe \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && source /etc/profile \
-    && pear upgrade --force \
     && LIB_ARCH=$(arch) \
     && ARCH=$(arch) \
     && if [ $LIB_ARCH == "x86_64" ] ; then \
@@ -153,5 +152,4 @@ RUN set -xe \
          apk add --no-cache ghostscript ; \ 
        fi \
     && apk del --no-cache .phpize-deps \
-    && rm -rf /tmp/* \ 
-
+    && rm -rf /tmp/*
