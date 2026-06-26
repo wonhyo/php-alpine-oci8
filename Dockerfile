@@ -62,9 +62,6 @@ RUN set -xe \
          docker-php-ext-install soap ; \
          apk del --no-cache .soap-deps ; \
        fi \
-    && if [ $WITH_OPENJDK -ne 0 ] ; then \
-         apk add --no-cache --update openjdk8 ; \
-       fi \
     && if [ $WITH_LDAP -ne 0 ] ; then \
          apk add --no-cache --update libldap ; \
          apk add --no-cache --update --virtual .ldap-deps openldap-dev; \
