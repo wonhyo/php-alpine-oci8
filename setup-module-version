@@ -47,6 +47,11 @@ case $PHP_VERSION in
 	   MEMCACHE_VERSION=8.0
 	   BUILD_PDO_OCI=0
 	;;
+        8.0* )
+	   OCI8_VERSION=3.0.1
+	   MEMCACHE_VERSION=8.0
+	   BUILD_PDO_OCI=0
+	;;
         7.4* )
 	   OCI8_VERSION=2.2.0
 	   MEMCACHE_VERSION=4.0.5.2
