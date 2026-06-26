@@ -11,6 +11,7 @@ RUN set -xe \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && source /etc/profile \
+    && pear upgrade --force \
     && LIB_ARCH=$(arch) \
     && ARCH=$(arch) \
     && if [ $LIB_ARCH == "x86_64" ] ; then \
@@ -87,11 +88,10 @@ RUN set -xe \
          apk del --no-cache .curl-deps ; \
        fi \
     && if [ $WITH_IMAGEMAGICK -ne 0 ] ; then \
-         #IMAGICK_VERSION=3.7.0 ; \
          apk add --no-cache --update imagemagick ; \
          apk add --no-cache --update --virtual .imagemagick-deps imagemagick-dev ; \
-	 pecl_get --offline imagick-${IMAGICK_VERSION}.tgz ; \
-         pecl install --offline imagick-${IMAGICK_VERSION}.tgz ; \
+	 pecl_get imagick-${IMAGICK_VERSION}.tgz ; \
+         pecl install --offline ./imagick-${IMAGICK_VERSION}.tgz ; \
          docker-php-ext-enable imagick ; \
          apk del --no-cache .imagemagick-deps ; \
        fi \
@@ -109,7 +109,6 @@ RUN set -xe \
          curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
        fi \
     && if [ $WITH_MEMCACHE -ne 0 ] ; then \
-         #MEMCACHE_VERSION=8.0 ; \
          apk add --no-cache --update libmemcached-libs libgomp ; \
          apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
          pecl_get memcache-${MEMCACHE_VERSION}.tgz ; \
