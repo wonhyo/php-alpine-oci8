@@ -90,8 +90,8 @@ RUN set -xe \
     && if [ $WITH_IMAGEMAGICK -ne 0 ] ; then \
          apk add --no-cache --update imagemagick ; \
          apk add --no-cache --update --virtual .imagemagick-deps imagemagick-dev ; \
-	 pecl_get imagick-${IMAGICK_VERSION}.tgz ; \
-         pecl install --offline ./imagick-${IMAGICK_VERSION}.tgz ; \
+	 pecl_get imagick ; \
+         pecl install --offline ./imagick ; \
          docker-php-ext-enable imagick ; \
          apk del --no-cache .imagemagick-deps ; \
        fi \

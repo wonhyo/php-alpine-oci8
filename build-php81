@@ -1,3 +1,0 @@
-#!/bin/bash
-
-docker build . --build-arg VERSION=8.1 -t php:8.1-fpm-alpine-oci8 --progress=plain
