@@ -1,5 +1,6 @@
 ARG VERSION=7
-FROM docker.io/php:${VERSION}-fpm-alpine
+ARG PHP_IMAGE=docker.io/php
+FROM ${PHP_IMAGE}:${VERSION}-fpm-alpine
 COPY ./setup-module-version /tmp/
 RUN set -xe \
     && echo $PHP_VERSION \
@@ -11,6 +12,7 @@ RUN set -xe \
     && apk upgrade --no-cache \
     && apk add --no-cache --update --virtual .phpize-deps $PHPIZE_DEPS git curl \
     && source /etc/profile \
+    && pear upgrade --force \
     && LIB_ARCH=$(arch) \
     && ARCH=$(arch) \
     && if [ $LIB_ARCH == "x86_64" ] ; then \
@@ -152,4 +154,5 @@ RUN set -xe \
          apk add --no-cache ghostscript ; \ 
        fi \
     && apk del --no-cache .phpize-deps \
-    && rm -rf /tmp/*
+    && rm -rf /tmp/* \ 
+
