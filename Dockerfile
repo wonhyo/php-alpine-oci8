@@ -20,6 +20,25 @@ RUN set -xe \
 	    LIB_ARCH="x86-64" ; \
        fi \ 
     && cd /tmp \
+    && if [ $WITH_MEMCACHE -ne 0 ] ; then \
+         apk add --no-cache --update libmemcached-libs libgomp ; \
+         apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
+         pecl_get memcache-${MEMCACHE_VERSION}.tgz ; \
+         pecl install --offline memcache-${MEMCACHE_VERSION}.tgz ; \
+         docker-php-ext-enable memcache ; \
+         pecl_get igbinary ; \
+         pecl install --offline ./igbinary ; \
+         pecl_get memcached-3.4.0.tgz ; \
+         pecl install --nobuild --offline ./memcached-3.4.0.tgz  ; \
+         cd "$(pecl config-get temp_dir)/memcached" ; \
+         phpize ; \
+         ./configure --enable-memcached-igbinary ; \
+         make -j$(nproc) ; \
+         make install ; \
+         docker-php-ext-enable igbinary memcached ; \
+         apk del --no-cache .memcached-deps ; \
+	 cd /tmp ; \
+       fi \
     && if [ $WITH_REDIS -ne 0 ] ; then \
 	 pecl_get redis ; \
          pecl install --offline ./redis ; \
@@ -105,24 +124,6 @@ RUN set -xe \
        fi \
     && if [ $WITH_PHP_COMPOSER -ne 0 ] ; then \
          curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer ; \
-       fi \
-    && if [ $WITH_MEMCACHE -ne 0 ] ; then \
-         apk add --no-cache --update libmemcached-libs libgomp ; \
-         apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
-         pecl_get memcache-${MEMCACHE_VERSION}.tgz ; \
-         pecl install --offline memcache-${MEMCACHE_VERSION}.tgz ; \
-         pecl_get igbinary ; \
-         pecl install --offline ./igbinary ; \
-         pecl_get memcached ; \
-         pecl install --nobuild --offline memcached ; \
-         cd "$(pecl config-get temp_dir)/memcached" ; \
-         phpize ; \
-         ./configure --enable-memcached-igbinary ; \
-         make -j$(nproc) ; \
-         make install ; \
-         docker-php-ext-enable igbinary memcached memcache ; \
-         apk del --no-cache .memcached-deps ; \
-	 cd /tmp ; \
        fi \
     && if [ $WITH_NODE -ne 0 ] ; then \
          apk add --no-cache --update icu icu-data-full ; \
