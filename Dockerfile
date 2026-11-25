@@ -24,7 +24,19 @@ RUN set -xe \
          apk add --no-cache --update libmemcached-libs libgomp ; \
          apk add --no-cache --update --virtual .memcached-deps zlib-dev libmemcached-dev cyrus-sasl-dev ; \
          pecl_get memcache-${MEMCACHE_VERSION}.tgz ; \
-         pecl install --offline memcache-${MEMCACHE_VERSION}.tgz ; \
+         pecl install --nobuild --offline memcache-${MEMCACHE_VERSION}.tgz ; \
+         cd "$(pecl config-get temp_dir)/memcache" ; \
+	 if php -r 'exit(version_compare(PHP_VERSION, "8.5.0", ">=") ? 0 : 1);'; then \
+	 	find . -type f \( -name '*.c' -o -name '*.h' \) \
+    		-exec sed -i \
+	    	-e 's|ext/standard/php_smart_string_public.h|Zend/zend_smart_string_public.h|g' \
+    		-e 's|ext/standard/php_smart_string.h|Zend/zend_smart_string.h|g' \
+    		{} + ; \
+	 fi ; \
+	 phpize ; \
+         ./configure ; \
+         make -j$(nproc) ; \
+         make install ; \
          docker-php-ext-enable memcache ; \
          pecl_get igbinary ; \
          pecl install --offline ./igbinary ; \
